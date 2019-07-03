@@ -1,14 +1,15 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React, {Component} from 'react';
 import './App.css';
-import Datepicker from './datepicker/datepicker'
+// import Datepicker from './datepicker/Datepicker';
+import Calendar from './datepicker/Calendar';
+import * as Styled from './datepicker/styles';
 
 class App extends Component {
-  render() {
+  render () {
     return (
-      <div className="App">
-          <Datepicker/>
-      </div>
+      <Styled.Body>
+        <Calendar />
+      </Styled.Body>
     );
   }
 }
