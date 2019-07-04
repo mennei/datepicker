@@ -176,7 +176,7 @@ export const SelectMonths = styled.select`
   border-radius: 4px;
   font-family: Almoni;
   font-size: 15px;
-  overflow-y: auto;
+  overflow-y: scroll;
   :hover{
     background: #efeded;
     color: #5aa87c;

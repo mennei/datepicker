@@ -78,6 +78,7 @@ class Calendar extends Component {
     const options = [];
     for (let i = 0; i <= 12; i++) {
       let dynamicMonth = month + i - 1;
+      let dynamicYear = year + 1;
       let dynamicNext = {};
       if (0 <= dynamicMonth && dynamicMonth <= 12) {
         dynamicNext = getNextMonth (dynamicMonth, year);
@@ -93,11 +94,16 @@ class Calendar extends Component {
       // Start new year, bring January value ('ינואר')
       if (dynamicMonthName == null) {
         dynamicMonthName = Object.values (CALENDAR_MONTHS)[0];
+        options.push ({
+          value: dynamicMonthName + ' ' + dynamicYear,
+          label: dynamicMonthName + ' ' + dynamicYear,
+        });
+      } else {
+        options.push ({
+          value: dynamicMonthName + ' ' + dynamicNext.year,
+          label: dynamicMonthName + ' ' + dynamicNext.year,
+        });
       }
-      options.push ({
-        value: dynamicMonthName + ' ' + dynamicNext.year,
-        label: dynamicMonthName + ' ' + dynamicNext.year,
-      });
     }
     return options;
   };
