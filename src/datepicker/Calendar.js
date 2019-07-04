@@ -1,6 +1,8 @@
 import React, {Component, Fragment} from 'react';
 import PropTypes from 'prop-types';
 import * as Styled from './styles';
+
+// Calendar is Two-dimensional array that manage in util.js
 import calendar, {
   isDate,
   isSameDay,
@@ -13,62 +15,96 @@ import calendar, {
   CALENDAR_MONTHS,
 } from '../helpers/utils';
 
+/**
+ * The calendar component
+ */
 class Calendar extends Component {
+  // The state hold resolveStateFromProp function (see above)
+  // and the selectedOption.
   state = {
     ...this.resolveStateFromProp (),
-    today: new Date (),
-    selectedOption: Object.values (CALENDAR_MONTHS)[new Date ().getMonth + 1] +
+    // today: new Date (),
+    selectedOption: Object.values (CALENDAR_MONTHS)[
+      new Date ().getMonth () + 1
+    ] +
       ' ' +
       new Date ().getFullYear (),
   };
 
+  /**
+   * Resolve state from date
+   * 
+   * @param {optional} date 
+   */
   resolveStateFromDate (date) {
     const isDateObject = isDate (date);
+    // When the isDateObject == null (when first loading) it initailze from today.
     const _date = isDateObject ? date : new Date ();
 
     return {
       current: isDateObject ? date : null,
-      month: +_date.getMonth () + 1,
+      month: _date.getMonth () + 1, // getMonth can return 0
       year: _date.getFullYear (),
     };
   }
 
+  /**
+   * Call resolveStateFromDate that initailzes the calender.
+   * Support applying calendar from datepicker component (not requierd for this task).
+   */
   resolveStateFromProp () {
     return this.resolveStateFromDate (this.props.date);
   }
 
+  /**
+   * Get calendar dates
+   */
   getCalendarDates = () => {
     const {current, month, year} = this.state;
     if (current !== null) {
       const calendarMonth = month || +current.getMonth () + 1;
       const calendarYear = year || current.getFullYear ();
-
       return calendar (calendarMonth, calendarYear);
     } else {
       return calendar (month, year);
     }
   };
 
+  /**
+   * Full the select input in months names (in hebrew) and year,
+   * from now up to 12 months.
+   */
   fullSelectOption = (month, year) => {
     const options = [];
-    let counter = 0;
-    for (let i = 0; i < 18; i++) {
-      let next = getNextMonth (month + i - 1, year);
-      // If month is 11 (December) start new year
-      if (month + i - 1 >= 12) {
-        next = getNextMonth (counter, year + 1);
-        counter++;
+    for (let i = 0; i <= 12; i++) {
+      let dynamicMonth = month + i - 1;
+      let dynamicNext = {};
+      if (0 <= dynamicMonth && dynamicMonth <= 12) {
+        dynamicNext = getNextMonth (dynamicMonth, year);
+      } else {
+        // New months in new year
+        dynamicMonth = dynamicMonth - 12;
+        // New year (year + 1)
+        dynamicNext = getNextMonth (dynamicMonth, year + 1);
       }
-
-      let dynamicMonthName = Object.values (CALENDAR_MONTHS)[next.month - 1];
+      dynamicMonth = dynamicNext.month;
+      // Place in opsions array the months form current month.
+      let dynamicMonthName = Object.values (CALENDAR_MONTHS)[dynamicMonth];
+      // Start new year, bring January value ('ינואר')
+      if (dynamicMonthName == null) {
+        dynamicMonthName = Object.values (CALENDAR_MONTHS)[0];
+      }
       options.push ({
-        value: dynamicMonthName + ' ' + next.year,
-        label: dynamicMonthName + ' ' + next.year,
+        value: dynamicMonthName + ' ' + dynamicNext.year,
+        label: dynamicMonthName + ' ' + dynamicNext.year,
       });
     }
     return options;
   };
 
+  /**
+   * Handle select input onChange event
+   */
   handleChange = evt => {
     evt && evt.preventDefault ();
     let selectedDate = evt.target.value;
@@ -95,8 +131,10 @@ class Calendar extends Component {
     );
   };
 
-  // Render the month and year header with arrow controls
-  // for navigating through months and years
+  /**
+   * Render the month and year header with arrow controls
+   * for navigating through months and years
+   */
   renderMonthAndYear = () => {
     const {month, year, selectedOption} = this.state;
 
@@ -138,8 +176,10 @@ class Calendar extends Component {
     );
   };
 
-  // Render the label for day of the week
-  // This method is used as a map callback as seen in render()
+  /**
+   * Render the label for day of the week
+   * This method is used as a map callback as seen in render()
+   */
   renderDayLabel = (day, index) => {
     // Resolve the day of the week label from the WEEK_DAYS object map
     const daylabel = WEEK_DAYS[day].toUpperCase ();
@@ -151,12 +191,13 @@ class Calendar extends Component {
     );
   };
 
-  // Render a calendar date as returned from the calendar builder function
-  // This method is used as a map callback as seen in render()
+  /**
+   * Render a calendar date as returned from the calendar builder function
+   * This method is used as a map callback as seen in render()
+   */
   renderCalendarDate = (date, index) => {
     // console.log ('date ', date, ' index ', index);
     const {current, month, year} = this.state;
-    // console.log (getMonthFirstDay (month));
     const _date = new Date (date.join ('-'));
 
     // Check if calendar date is same day as currently selected date
@@ -170,7 +211,7 @@ class Calendar extends Component {
 
     // For checking the last days from now till end of month.
     const inLastDaysOfMonth = inLastDays (_date);
-
+    // console.log (inLastDaysOfMonth);
     // The click handler
     const onClick = this.gotoDate (_date);
 
@@ -188,13 +229,16 @@ class Calendar extends Component {
           ? Styled.HighlightedCalendarDate
           : Styled.CalendarDate;
 
-    return (
-      <DateComponent key={getDateISO (_date)} {...props}>
-        {_date.getDate ()}
-      </DateComponent>
-    );
+    return !isNaN (_date.getTime ())
+      ? <DateComponent key={getDateISO (_date)} {...props}>
+          {_date.getDate ()}
+        </DateComponent>
+      : <div />;
   };
 
+  /**
+   * Activate choosen date
+   */
   gotoDate = date => evt => {
     evt && evt.preventDefault ();
     let choosingDateStr = inLastDays (date)
@@ -203,26 +247,43 @@ class Calendar extends Component {
     this.setState ({clickableDate: choosingDateStr});
   };
 
+  /**
+   * Go to previous month
+   */
   gotoPreviousMonth = () => {
     const {month, year} = this.state;
     this.setState (getPreviousMonth (month, year));
   };
 
+  /**
+   * Go to next month
+   */
   gotoNextMonth = () => {
     const {month, year} = this.state;
     this.setState (getNextMonth (month, year));
   };
 
+  /**
+   * Go to previous year
+   */
   gotoPreviousYear = () => {
     const {year} = this.state;
     this.setState ({year: year - 1});
   };
 
+  /**
+   * Go to next year
+   */
   gotoNextYear = () => {
     const {year} = this.state;
     this.setState ({year: year + 1});
   };
 
+  /**
+   * The handlePressure() method simply uses timers to simulate pressure clicking 
+   * for rapidly cycling through months or years, 
+   * while the clearPressureTimer() method clears these timers.
+   */
   handlePressure = fn => {
     if (typeof fn === 'function') {
       fn ();
@@ -237,6 +298,12 @@ class Calendar extends Component {
     this.pressureTimeout && clearTimeout (this.pressureTimeout);
   };
 
+  /**
+   * The handlePrevious() and handleNext() event handlers share a similar behavior. 
+   * By default, they cycle through the months. 
+   * However if the shift key is pressed, then they cycle through years instead. 
+   * Finally, they handover control to the handlePressure() method.
+   */
   handlePrevious = evt => {
     evt && evt.preventDefault ();
     const fn = evt.shiftKey ? this.gotoPreviousYear : this.gotoPreviousMonth;

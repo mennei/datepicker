@@ -1,3 +1,4 @@
+// For last day in month calcultion
 export const moment = require ('moment');
 
 // (int) The current year
@@ -58,7 +59,12 @@ export const getMonthDays = (month = THIS_MONTH, year = THIS_YEAR) => {
 // (int) First day of the month for a given year from 1 - 7
 // 1 => Sunday, 7 => Saturday
 export const getMonthFirstDay = (month = THIS_MONTH, year = THIS_YEAR) => {
-  return +new Date (`${year}-${zeroPad (month, 2)}-01`).getDay () + 1;
+  if (month !== 0) {
+    // Exclude Jun case
+    return new Date (`${year}-${zeroPad (month, 2)}-01`).getDay () + 1;
+  } else {
+    return new Date (`${year}-${zeroPad (month + 1, 2)}-01`).getDay () + 1;
+  }
 };
 
 // (bool) Checks if a value is a date - this is just a simple check
@@ -70,7 +76,6 @@ export const isDate = date => {
 };
 
 // (bool) Checks if date value is in rand of today till end month
-
 export const inLastDays = (date, today = moment ()) => {
   let dateToCheck = moment (date);
   return dateToCheck.diff (today, 'days') >= 0 ? true : false;
@@ -136,7 +141,6 @@ export const getPreviousMonth = (month, year) => {
 export const getNextMonth = (month, year) => {
   const nextMonth = month < 12 ? month + 1 : 1;
   const nextMonthYear = month < 12 ? year : year + 1;
-  // console.log (nextMonth, nextMonthYear);
   return {month: nextMonth, year: nextMonthYear};
 };
 
